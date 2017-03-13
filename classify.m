@@ -3,7 +3,7 @@
 % *              		 521289S Machine Learning 					     *
 % *                     Programming Assignment 2016                      *
 % *                                                                      *
-% *   Author 1: << Insert Name and Student ID number here >>             *
+% *   Author 1: Christian Walter 2516301                                 *
 % *                                                                      *
 % *   NOTE: The file name for this file MUST BE 'classify.m'!            *
 % *         Everything should be included in this single file.           *
@@ -76,6 +76,28 @@ function classify()
 %       FOR TESTING ON SERVER SIDE.
 
 % Example: Testing a private interface subfunction:
+
+% - Load the data
+load training_data
+N = size(trainingData,1);
+
+% - Split the data to training and validation sets.
+selection = randperm(N);
+training_data = trainingData(selection(1:floor(2*N/3)), :);
+training_class = class_trainingData(selection(1:floor(2*N/3)), :);
+validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
+validation_class = class_trainingData(selection((floor(2*N/3)+1):N), :);
+
+% - Train the classifier on the training set (call trainClassifier).
+
+
+% - Test it using the validation data set and learned parameters (call
+%   evaluateClassifier).
+
+
+% - Calculate performance statistics (accuracy, sensitivity, specificity,
+%   etc.)
+
     myDistanceFunction( rand(10,1) , rand(10,1) )
 end
 
@@ -105,7 +127,7 @@ end
 % if resubmitting a new version to the ranking system for re-evaluation!
 %%
 function nick = getNickName()
-    nick = 'NotSoNaiveBayes';   % CHANGE THIS!
+    nick = 'lazy_Flegmon';   % CHANGE THIS!
 end
 
 
