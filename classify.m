@@ -75,30 +75,35 @@ function classify()
 %       YOU CAN E.G. DELETE/EMPTY THIS FUNCTION AS IT IS NOT USED
 %       FOR TESTING ON SERVER SIDE.
 
-% Example: Testing a private interface subfunction:
-
-% - Load the data
+%% - Load the data
+close all
+clear all
+clc
 load training_data
-N = size(trainingData,1);
 
-% - Split the data to training and validation sets.
+%% - Split the data to training and validation sets.
+%N = size(trainingData,1);
+N = 500;    %-%
 selection = randperm(N);
 training_data = trainingData(selection(1:floor(2*N/3)), :);
 training_class = class_trainingData(selection(1:floor(2*N/3)), :);
 validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
 validation_class = class_trainingData(selection((floor(2*N/3)+1):N), :);
 
-% - Train the classifier on the training set (call trainClassifier).
+%plotFeatureSamples(training_data, training_class)
 
+%% - Train the classifier on the training set (call trainClassifier).
+parameters = trainClassifier( training_data, training_class );
+% add validation_class
+[parameters(:).validation_class] = validation_class;
 
-% - Test it using the validation data set and learned parameters (call
+ 
+%% - Test it using the validation data set and learned parameters (call
 %   evaluateClassifier).
+results = evaluateClassifier( validation_data, parameters )
 
-
-% - Calculate performance statistics (accuracy, sensitivity, specificity,
+%% - Calculate performance statistics (accuracy, sensitivity, specificity,
 %   etc.)
-
-    myDistanceFunction( rand(10,1) , rand(10,1) )
 end
 
 
@@ -173,7 +178,7 @@ end
 %            See MATLAB help for details on these.
 %%
 function parameters = trainClassifier( samples, classes )
-%%
+%% Comments
 % Insert the function body here!
 %
 % You must be able to construct a classifier solely based on the data in
@@ -192,6 +197,32 @@ function parameters = trainClassifier( samples, classes )
 %
 % You are free to remove these comments.
 %
+
+%% Train feature vector
+k = 1
+num_features = size(samples,2);
+fvector = zeros(num_features,1);
+best_result = 0;
+for in = 1:num_features
+    [best_result_add, best_feature_add] = ...
+        forwardsearch(samples, classes, fvector, k);
+    % Update the feature vector  
+    fvector(best_feature_add) = 1;
+  
+    % Save best result
+    if(best_result < best_result_add)
+        best_result = best_result_add;
+        best_fvector = fvector;
+    end
+end
+
+%-%
+best_result
+best_fvector
+
+parameters = struct('training_samples', samples, ...
+    'training_class', classes, 'best_fvector', best_fvector, 'k', k);
+
 end
 
 
@@ -223,7 +254,7 @@ end
 %            vector in the previous function.
 %%
 function results = evaluateClassifier( samples, parameters )
-%%
+%% Comments
 % Insert the function body here!
 %
 % Typically, you must construct the classifier with the given parameters
@@ -239,6 +270,12 @@ function results = evaluateClassifier( samples, parameters )
 %
 % You are free to remove these comments.
 %
+
+%% Test results. Train the system and evaluate the accuracy.
+valid_res = knnclass(samples, parameters.training_samples, ...
+    parameters.best_fvector, parameters.training_class, parameters.k);
+correct = sum(valid_res == parameters.validation_class);
+results = correct / length(parameters.validation_class);
 end
 
 
@@ -257,9 +294,73 @@ end
 % *   on the server side, implement those here.                          *
 % *                                                                      *
 % ************************************************************************
+%
+%% KNN classification
+function [predictedLabels] = knnclass(dat1, dat2, fvec, classes, k)
 
-%% A simple example:
-%  (You can delete this if you wish!)
-function d = myDistanceFunction( x, y )
-    d = sqrt( sum( (x - y).^2 ) );
+    p1 = pdist2( dat1(:,logical(fvec)), dat2(:,logical(fvec)) );
+    % Here we aim in finding k-smallest elements
+    [D, I] = sort(p1', 1);
+
+    I = I(1:k+1, :);
+    labels = classes( : )';
+    % this is for k-NN, k = 1
+    if k == 1 
+        predictedLabels = labels( I(2, : ) )';
+    % this is for k-NN, other odd k larger than 1
+    else 
+        predictedLabels = mode( labels( I( 1+(1:k), : ) ), 1)';
+    end
 end
+
+%% Forwardsearch
+function [best, feature] = forwardsearch(data, data_c, fvector, k)
+    % SFS, from previous lesson.
+    num_samples = length(data);
+    best = 0;
+    feature = 0;
+    
+    for in = 1:length(fvector)
+        if (fvector(in) == 0)
+            fvector(in) = 1;
+            % Classify using k-NN
+	        predictedLabels = knnclass(data, data, fvector, data_c, k);
+            % the number of correct predictions
+            correct = sum(predictedLabels == data_c); 
+            result = correct/num_samples; % accuracy
+            if(result > best)
+                best = result; 
+                feature = in; 
+            end
+            fvector(in) = 0;
+        end
+    end
+end
+
+%% plotFeatureSamples
+function plotFeatureSamples(samples, class)
+samples(:, 2)
+class = class == 1
+samples = samples(:, 1) .* class
+samples(samples==0) = nan
+
+N = length(samples)
+% steps
+stepsize = 25;
+x = min(samples):stepsize:max(samples);
+
+% 1.histogramm
+h1 = histcounts(samples, x);
+h1 = h1/sum(h1)/stepsize;
+
+% plot 1.histogramm
+bincenters = x(1:end-1) + diff(x)/2;
+figure
+plot(bincenters, h1)
+hold on
+end
+
+
+
+
+%% EOF
