@@ -38,43 +38,8 @@
 %
 % OUTPUT: none (change if you wish)
 %%
-function classify()
-%%
-% This function is a place-holder for your testing code. This is not used
-% by the server when validating your classifier.
-%
-% Since the name of this function is the same as the file-name, this
-% function is called when executing classify command in the MATLAB
-% given that the m-file is in the path or the current folder of MATLAB.
-%
-% In essence, you can use this function as a main function of your code.
-% You can use this method to test code as you are implementing or
-% debugging required functionalities to this file.
-%
-% You must not change the name of this function or the name of this file!
-% However, you may add and modify the input and output variables as you
-% wish to suit your needs.
-%
-% Typically, you could: 
-% - Load the data.
-% - Split the data to training and validation sets.
-% - Train the classifier on the training set (call trainClassifier).
-% - Test it using the validation data set and learned parameters (call
-%   evaluateClassifier).
-% - Calculate performance statistics (accuracy, sensitivity, specificity,
-%   etc.)
-%
-% Based on the above procedure, you can try different approaches to find 
-% out what would be the best way to implement the classifier training 
-% and evaluation.
-%
-% You are free to remove these comments.
-%
-% NOTE: FILE SYSTEM COMMANDS AND/OR SYSTEM COMMANDS ARE PROHIBITED
-%       ON SERVER! PLEASE REMOVE ANY SUCH COMMANDS BEFORE SUBMISSION!
-%       YOU CAN E.G. DELETE/EMPTY THIS FUNCTION AS IT IS NOT USED
-%       FOR TESTING ON SERVER SIDE.
 
+function classify()
 %% - Load the data
 close all
 clear all
@@ -82,8 +47,8 @@ clc
 load training_data
 
 %% - Split the data to training and validation sets.
-%N = size(trainingData,1);
-N = 500;    %-%
+N = size(trainingData,1);
+N = 1000;    %-%
 selection = randperm(N);
 training_data = trainingData(selection(1:floor(2*N/3)), :);
 training_class = class_trainingData(selection(1:floor(2*N/3)), :);
@@ -94,16 +59,18 @@ validation_class = class_trainingData(selection((floor(2*N/3)+1):N), :);
 
 %% - Train the classifier on the training set (call trainClassifier).
 parameters = trainClassifier( training_data, training_class );
-% add validation_class
-[parameters(:).validation_class] = validation_class;
 
  
 %% - Test it using the validation data set and learned parameters (call
 %   evaluateClassifier).
-results = evaluateClassifier( validation_data, parameters )
+results = evaluateClassifier( validation_data, parameters );
 
 %% - Calculate performance statistics (accuracy, sensitivity, specificity,
 %   etc.)
+
+correct = sum(results == validation_class);
+correct_classified = correct / length(validation_class)
+
 end
 
 
@@ -199,7 +166,7 @@ function parameters = trainClassifier( samples, classes )
 %
 
 %% Train feature vector
-k = 1
+k = 1;
 num_features = size(samples,2);
 fvector = zeros(num_features,1);
 best_result = 0;
@@ -215,10 +182,6 @@ for in = 1:num_features
         best_fvector = fvector;
     end
 end
-
-%-%
-best_result
-best_fvector
 
 parameters = struct('training_samples', samples, ...
     'training_class', classes, 'best_fvector', best_fvector, 'k', k);
@@ -272,10 +235,9 @@ function results = evaluateClassifier( samples, parameters )
 %
 
 %% Test results. Train the system and evaluate the accuracy.
-valid_res = knnclass(samples, parameters.training_samples, ...
+results = knnclass(samples, parameters.training_samples, ...
     parameters.best_fvector, parameters.training_class, parameters.k);
-correct = sum(valid_res == parameters.validation_class);
-results = correct / length(parameters.validation_class);
+
 end
 
 
