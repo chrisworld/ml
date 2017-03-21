@@ -32,13 +32,7 @@
 % ************************************************************************
 
 %% This is the main function of this m-file
-%  You can use this e.g. for unit testing.
-%
-% INPUT:  none (change if you wish)
-%
-% OUTPUT: none (change if you wish)
 %%
-
 function classify()
 %% - Load the data
 close all
@@ -46,10 +40,12 @@ clear all
 clc
 load training_data
 
+%trainingData = standardize(trainingData);
+
 %% - Split the data to training and validation sets.
 N = size(trainingData,1);
 N = 1000;    %-%
-selection = randperm(N);
+selection = 1:N;
 training_data = trainingData(selection(1:floor(2*N/3)), :);
 training_class = class_trainingData(selection(1:floor(2*N/3)), :);
 validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
@@ -59,7 +55,6 @@ validation_class = class_trainingData(selection((floor(2*N/3)+1):N), :);
 
 %% - Train the classifier on the training set (call trainClassifier).
 parameters = trainClassifier( training_data, training_class );
-
  
 %% - Test it using the validation data set and learned parameters (call
 %   evaluateClassifier).
@@ -166,7 +161,7 @@ function parameters = trainClassifier( samples, classes )
 %
 
 %% Train feature vector
-k = 1;
+k = 3;
 num_features = size(samples,2);
 fvector = zeros(num_features,1);
 best_result = 0;
@@ -299,30 +294,4 @@ function [best, feature] = forwardsearch(data, data_c, fvector, k)
     end
 end
 
-%% plotFeatureSamples
-function plotFeatureSamples(samples, class)
-samples(:, 2)
-class = class == 1
-samples = samples(:, 1) .* class
-samples(samples==0) = nan
 
-N = length(samples)
-% steps
-stepsize = 25;
-x = min(samples):stepsize:max(samples);
-
-% 1.histogramm
-h1 = histcounts(samples, x);
-h1 = h1/sum(h1)/stepsize;
-
-% plot 1.histogramm
-bincenters = x(1:end-1) + diff(x)/2;
-figure
-plot(bincenters, h1)
-hold on
-end
-
-
-
-
-%% EOF
