@@ -160,14 +160,17 @@ function parameters = trainClassifier( samples, classes )
 % You are free to remove these comments.
 %
 
+%% Standardize
+samples_white = standardize(samples);
+
 %% Train feature vector
 k = 3;
-num_features = size(samples,2);
+num_features = size(samples_white,2);
 fvector = zeros(num_features,1);
 best_result = 0;
 for in = 1:num_features
     [best_result_add, best_feature_add] = ...
-        forwardsearch(samples, classes, fvector, k);
+        forwardsearch(samples_white, classes, fvector, k);
     % Update the feature vector  
     fvector(best_feature_add) = 1;
   
@@ -179,6 +182,7 @@ for in = 1:num_features
 end
 
 parameters = struct('training_samples', samples, ...
+    'training_samples_white', samples_white, ...
     'training_class', classes, 'best_fvector', best_fvector, 'k', k);
 
 end
@@ -229,8 +233,13 @@ function results = evaluateClassifier( samples, parameters )
 % You are free to remove these comments.
 %
 
-%% Test results. Train the system and evaluate the accuracy.
-results = knnclass(samples, parameters.training_samples, ...
+%% Standardize
+N = length(samples);
+samples_white = standardize([samples; parameters.training_samples]);
+samples = samples_white(1:N, :);
+
+%% Classification
+results = knnclass(samples, parameters.training_samples_white, ...
     parameters.best_fvector, parameters.training_class, parameters.k);
 
 end
@@ -254,11 +263,10 @@ end
 %
 %% KNN classification
 function [predictedLabels] = knnclass(dat1, dat2, fvec, classes, k)
-
+    % distance calculation
     p1 = pdist2( dat1(:,logical(fvec)), dat2(:,logical(fvec)) );
     % Here we aim in finding k-smallest elements
     [D, I] = sort(p1', 1);
-
     I = I(1:k+1, :);
     labels = classes( : )';
     % this is for k-NN, k = 1
@@ -272,11 +280,10 @@ end
 
 %% Forwardsearch
 function [best, feature] = forwardsearch(data, data_c, fvector, k)
-    % SFS, from previous lesson.
+    % SFS
     num_samples = length(data);
     best = 0;
     feature = 0;
-    
     for in = 1:length(fvector)
         if (fvector(in) == 0)
             fvector(in) = 1;
@@ -294,4 +301,14 @@ function [best, feature] = forwardsearch(data, data_c, fvector, k)
     end
 end
 
+%% Standardize
+function [feat_out] = standardize(feat_in)
+% centering
+N = length(feat_in); 
+feat_cent = feat_in - repmat(mean(feat_in), N, 1);
+% whitening with eigenvalue decomposition
+[A, B] = eig(cov(feat_cent));
+Y1 = sqrt(inv(B)) * A' * feat_cent';
+feat_out = Y1';
+end
 
