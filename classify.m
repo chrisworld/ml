@@ -10,27 +10,6 @@
 % *                                                                      *
 % ************************************************************************
 
-%% NOTE ******************************************************************
-% *                                                                      *
-% *       DO NOT DEFINE ANY GLOBAL VARIABLES (outside functions)!        *
-% *                                                                      *
-% *       Your task is to complete the PUBLIC INTERFACE below without    *
-% *       modifying the definitions. You can define and implement any    *
-% *       functions you like in the PRIVATE INTERFACE at the end of      *
-% *       this file as you wish.                                         *
-% *                                                                      *
-% ************************************************************************
-
-%% HINT ******************************************************************
-% *                                                                      *
-% *       If you enable cell folding for the m-file editor, you can      *
-% *       easily hide these comments from view for less clutter!         *
-% *                                                                      *
-% *       [ File -> Preferences -> Code folding -> Cells = enable.       *
-% *         Then use -/+ signs on the left margin for hiding/showing. ]  *
-% *                                                                      *
-% ************************************************************************
-
 %% This is the main function of this m-file
 %%
 function classify()
@@ -44,7 +23,7 @@ load training_data
 
 %% - Split the data to training and validation sets.
 N = size(trainingData,1);
-N = 1000;    %-%
+%N = 1000;    %-%
 selection = 1:N;
 training_data = trainingData(selection(1:floor(2*N/3)), :);
 training_class = class_trainingData(selection(1:floor(2*N/3)), :);
@@ -160,8 +139,9 @@ function parameters = trainClassifier( samples, classes )
 % You are free to remove these comments.
 %
 
-%% Standardize
-samples_white = standardize(samples);
+%% Whitening
+[A, B] = eig(cov(samples));
+samples_white = whitening(samples, A, B);
 
 %% Train feature vector
 k = 3;
@@ -181,9 +161,9 @@ for in = 1:num_features
     end
 end
 
-parameters = struct('training_samples', samples, ...
-    'training_samples_white', samples_white, ...
-    'training_class', classes, 'best_fvector', best_fvector, 'k', k);
+parameters = struct('training_samples_white', samples_white, ...
+    'white_A', A, 'white_B', B,'training_class', classes,...
+    'best_fvector', best_fvector, 'k', k);
 
 end
 
@@ -233,13 +213,12 @@ function results = evaluateClassifier( samples, parameters )
 % You are free to remove these comments.
 %
 
-%% Standardize
-N = length(samples);
-samples_white = standardize([samples; parameters.training_samples]);
-samples = samples_white(1:N, :);
+%% Whitening
+samples_white = whitening(samples, ...
+    parameters.white_A, parameters.white_B);
 
 %% Classification
-results = knnclass(samples, parameters.training_samples_white, ...
+results = knnclass(samples_white, parameters.training_samples_white, ...
     parameters.best_fvector, parameters.training_class, parameters.k);
 
 end
@@ -301,14 +280,9 @@ function [best, feature] = forwardsearch(data, data_c, fvector, k)
     end
 end
 
-%% Standardize
-function [feat_out] = standardize(feat_in)
-% centering
-N = length(feat_in); 
-feat_cent = feat_in - repmat(mean(feat_in), N, 1);
-% whitening with eigenvalue decomposition
-[A, B] = eig(cov(feat_cent));
-Y1 = sqrt(inv(B)) * A' * feat_cent';
-feat_out = Y1';
+%% Whitening
+function [feat_out] = whitening(feat_in, A, B)
+% eigenvalue decompensation
+feat_out = (sqrt(inv(B)) * A' * feat_in')';
 end
 
