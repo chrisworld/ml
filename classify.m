@@ -23,7 +23,7 @@ load training_data
 
 %% - Split the data to training and validation sets.
 N = size(trainingData,1);
-%N = 1000;    %-%
+N = 1000;    %-%
 selection = 1:N;
 training_data = trainingData(selection(1:floor(2*N/3)), :);
 training_class = class_trainingData(selection(1:floor(2*N/3)), :);
@@ -120,26 +120,12 @@ end
 %%
 function parameters = trainClassifier( samples, classes )
 %% Comments
-% Insert the function body here!
-%
-% You must be able to construct a classifier solely based on the data in
-% the parameters data structure in the evaluateClassifier-function.
-% Consequently, choose carefully what is needed to be stored in the
-% parameters data structure.
-%
 % Hint 1: If you wish to avoid overtraining, you could partition the
 % training samples to a actual training data set and a testing data set
 % that is used for a stopping/overtraining criterion.
-%
-% Hint 2: To avoid duplicating e.g. classifier construction code define
-% suitable own functions at the end of this file as subfunctions!
-% You could also utilize nested functions within this function
-% to perform repetitive tasks. See MATLAB help for details.
-%
-% You are free to remove these comments.
-%
 
-%% Whitening
+
+%% Whitening with eigenvalue decompensation
 [A, B] = eig(cov(samples));
 samples_white = whitening(samples, A, B);
 
@@ -196,23 +182,6 @@ end
 %            vector in the previous function.
 %%
 function results = evaluateClassifier( samples, parameters )
-%% Comments
-% Insert the function body here!
-%
-% Typically, you must construct the classifier with the given parameters
-% and then apply it to the given data.
-%
-% Note that no learning should take place in this function! The classifier
-% is just applied to the data.
-%
-% Hint: To avoid duplicating e.g. classifier construction code define
-% suitable own functions at the end of this file as subfunctions!
-% You could also utilize nested functions within this function
-% to perform repetitive tasks. See MATLAB help for details.
-%
-% You are free to remove these comments.
-%
-
 %% Whitening
 samples_white = whitening(samples, ...
     parameters.white_A, parameters.white_B);
