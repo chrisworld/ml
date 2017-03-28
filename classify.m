@@ -13,36 +13,34 @@
 %% This is the main function of this m-file
 %%
 function classify()
-%% - Load the data
-close all
-clear all
-load training_data
+    %% - Load the data
+    close all
+    clear all
+    load training_data
 
-%trainingData = standardize(trainingData);
+    %trainingData = standardize(trainingData);
 
-%% - Split the data to training and validation sets.
-N = size(trainingData,1);
-N = 2000;    %-%
-selection = 1:N;
-training_data = trainingData(selection(1:floor(2*N/3)), :);
-training_class = class_trainingData(selection(1:floor(2*N/3)), :);
-validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
-validation_class = class_trainingData(selection((floor(2*N/3)+1):N), :);
+    %% - Split the data to training and validation sets.
+    %N = size(trainingData,1);
+    N = 1000;    %-%
+    selection = 1:N;
+    training_data = trainingData(selection(1:floor(2*N/3)), :);
+    training_class = class_trainingData(selection(1:floor(2*N/3)), :);
+    validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
+    validation_class = class_trainingData(selection((floor(2*N/3)+1):N),:);
 
-%plotFeatureSamples(training_data, training_class)
+    %% - Train the classifier on the training set (call trainClassifier).
+    parameters = trainClassifier( training_data, training_class );
 
-%% - Train the classifier on the training set (call trainClassifier).
-parameters = trainClassifier( training_data, training_class );
- 
-%% - Test it using the validation data set and learned parameters (call
-%   evaluateClassifier).
-results = evaluateClassifier( validation_data, parameters );
+    %% - Test it using the validation data set and learned parameters (call
+    %   evaluateClassifier).
+    results = evaluateClassifier( validation_data, parameters );
 
-%% - Calculate performance statistics (accuracy, sensitivity, specificity,
-%   etc.)
+    %% - Calculate performance statistics (accuracy, sensitivity, 
+    % specificity, etc.)
 
-correct = sum(results == validation_class);
-correct_classified = correct / length(validation_class)
+    correct = sum(results == validation_class);
+    correct_classified = correct / length(validation_class)
 
 end
 
@@ -129,7 +127,8 @@ function parameters = trainClassifier( samples, classes )
     samples_white = whitening(samples, A, B);
 
     %% Train feature vector
-    k = 3;
+    %k = 3;
+    k = (round(sqrt(size(samples_white,1))/2)-1/2)*2
     num_features = size(samples_white,2);
     fvector = zeros(num_features,1);
     best_result = 0;
@@ -256,7 +255,7 @@ end
 
 %% SFFS
 function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
-    %% SFFS Init
+    % SFFS Init
     best_result = 0;
     n_features = 1;
     max_n_features = length(fvector);
@@ -264,7 +263,7 @@ function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
     % search_direction: forwards when 0, backwards when 1
     search_direction = 0; 
 
-    %% loop
+    % loop
     while(n_features <= max_n_features)
         % Inclusion
         [best_result_add, best_feature_add] = ...
