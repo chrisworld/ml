@@ -256,7 +256,7 @@ end
 
 %% SFFS
 function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
-    %% SFFS Init
+    % SFFS Init
     best_result = 0;
     n_features = 1;
     max_n_features = length(fvector);
@@ -264,7 +264,7 @@ function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
     % search_direction: forwards when 0, backwards when 1
     search_direction = 0; 
 
-    %% loop
+    % loop
     while(n_features <= max_n_features)
         % Inclusion
         [best_result_add, best_feature_add] = ...
@@ -356,4 +356,66 @@ function [feat_out] = whitening(feat_in, A, B)
 % eigenvalue decompensation
 feat_out = (sqrt(inv(B)) * A' * feat_in')';
 end
+
+%% Perceptron classification, using gradient decent
+function [weights] = perceptron(samples, classes)
+    % Initialize a normal vector 
+    dist_from_origin = -0.5;
+    direction_x = 1;
+    direction_y = -1.2;
+    init_v = ones(length())
+    
+    % initial guess
+    a = [dist_from_origin direction_x direction_y]';
+    a(2:3) = a(2:3)/norm(a(2:3));
+
+    % Draw the corresponding decision boundary
+    offset = a(1)*a(2:3);
+    linex = -a(3) * [-10:0.1:10]' - offset(1);
+    liney = a(2) * [-10:0.1:10]' - offset(2);
+    lineh = plot(linex, liney);
+
+    % Perceptron gradient search algorithm (batch version)
+    Y = [ones(length(C), 1) X];
+    Y2 = Y;
+    % Invert, change the signs for class 2
+    Y2(C == 1, :) = Y2(C == 1, :) .* -1;
+
+    % optimal
+    %b = ones(4, 1)
+    %a = inv(Y2'*Y2) * Y2'*b
+
+    % Initialize parameters:
+    omega = 0; % end condition
+    step = 0.2; % learning parameter
+    threshold = 9999; % initial threshold
+    k = 1;
+
+    % Search until suitable solution (use e.g. a while loop)
+    while threshold > omega
+        % calculate projections, when we dont have yet the solution
+        % and some samples are still missclassified, then for those samples
+        % a*y_i<0 and when we have found the solution all a*y_i>0
+        Z = Y2*a;
+
+        % Adjust according to the sum of negative projections
+        adjust = step * sum(Y2(Z<=0,:), 1)';
+        a = a + adjust
+        a(2:3) = a(2:3)/norm(a(2:3));
+
+        % calculate new threshold
+        threshold = sum(norm(adjust));
+        k = k + 1;
+
+        % update decision boundary
+        pause(0.25)
+        delete(lineh)
+        offset = a(1)*a(2:3);
+        linex = -a(3) * [-10:0.1:10]' - offset(1);
+        liney = a(2) * [-10:0.1:10]' - offset(2);
+        lineh = plot(linex, liney); 
+    end
+
+end
+
 
