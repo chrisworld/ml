@@ -128,7 +128,8 @@ function parameters = trainClassifier( samples, classes )
 
     %% Train feature vector
     %k = 3;
-    k = (round(sqrt(size(samples_white,1))/2)-1/2)*2
+    k = findbest_k(samples, classes)
+    %k = (round(sqrt(size(samples_white,1))/2)-1/2)*2
     num_features = size(samples_white,2);
     fvector = zeros(num_features,1);
     best_result = 0;
@@ -277,7 +278,7 @@ function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
         if(best_result_add > res_vector(n_features))
             res_vector(n_features) = best_result_add;
         end
-        disp([res_vector(n_features), n_features])
+        %disp([res_vector(n_features), n_features])
 
         % Exclusion
         search_direction = 1;
@@ -296,7 +297,7 @@ function [res_vector, best_fset] = sffs(data, data_c, fvector, k)
                         best_fset = fvector;
                     end
                     res_vector(n_features) = best_result_rem;
-                    disp([res_vector(n_features), n_features])
+                    %disp([res_vector(n_features), n_features])
                 else
                     search_direction = 0;
                 end
@@ -355,4 +356,24 @@ function [feat_out] = whitening(feat_in, A, B)
 % eigenvalue decompensation
 feat_out = (sqrt(inv(B)) * A' * feat_in')';
 end
+
+%% Best k for knn classifier, use cross validation
+%{
+function [k] = findbest_k(samples, classes)
+    test_k = 1:2:21;
+    fvector = ones(length(samples, 2),1)
+    samples 
+    predictedLabels = knnclass(data, data, fvector, data_c, k);
+    % the number of correct predictions
+    correct = sum(predictedLabels == data_c); 
+    result = correct/num_samples; % accuracy
+    
+    k = 1
+    cvmdlloss = kfoldLoss(cvmdl)
+end
+%}
+
+
+
+
 
