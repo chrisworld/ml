@@ -18,10 +18,8 @@ function classify()
     clear all
     load training_data
 
-    %trainingData = standardize(trainingData);
-
-    %% - Split the data to training and validation sets.
-    %N = size(trainingData,1);
+    %% - Split the data to training and validation sets
+    N = size(trainingData,1);
     N = 1000;    %-%
     selection = 1:N;
     training_data = trainingData(selection(1:floor(2*N/3)), :);
@@ -29,16 +27,13 @@ function classify()
     validation_data = trainingData(selection((floor(2*N/3)+1):N), :);
     validation_class = class_trainingData(selection((floor(2*N/3)+1):N),:);
 
-    %% - Train the classifier on the training set (call trainClassifier).
+    %% - Train the classifier
     parameters = trainClassifier( training_data, training_class );
 
-    %% - Test it using the validation data set and learned parameters (call
-    %   evaluateClassifier).
+    %% - Test the classifier
     results = evaluateClassifier( validation_data, parameters );
 
-    %% - Calculate performance statistics (accuracy, sensitivity, 
-    % specificity, etc.)
-
+    %% - Calculate performance 
     correct = sum(results == validation_class);
     correct_classified = correct / length(validation_class)
 
@@ -116,24 +111,18 @@ end
 %            See MATLAB help for details on these.
 %%
 function parameters = trainClassifier( samples, classes )
-    %% Comments
-    % Hint 1: If you wish to avoid overtraining, you could partition the
-    % training samples to a actual training data set and a testing data set
-    % that is used for a stopping/overtraining criterion.
-
-
     %% Whitening with eigenvalue decompensation
     [A, B] = eig(cov(samples));
     samples_white = whitening(samples, A, B);
 
     %% Train feature vector
-    %k = 3;
-    k = findbest_k(samples, classes)
-    %k = (round(sqrt(size(samples_white,1))/2)-1/2)*2
+    k = 3;
     num_features = size(samples_white,2);
     fvector = zeros(num_features,1);
     best_result = 0;
-    %{
+    
+    % SFS
+    %%{
     % Forward
     for in = 1:num_features
         [best_result_add, best_feature_add] = ...
@@ -148,9 +137,11 @@ function parameters = trainClassifier( samples, classes )
     end
     %}
     
+    % SFFS
+    %{
     [best_result, best_fvector] = ...
         sffs(samples_white, classes, fvector, k);
-    % best_fvector
+    %}
     
     parameters = struct('training_samples_white', samples_white, ...
         'white_A', A, 'white_B', B,'training_class', classes,...
@@ -357,21 +348,7 @@ function [feat_out] = whitening(feat_in, A, B)
 feat_out = (sqrt(inv(B)) * A' * feat_in')';
 end
 
-%% Best k for knn classifier, use cross validation
-%{
-function [k] = findbest_k(samples, classes)
-    test_k = 1:2:21;
-    fvector = ones(length(samples, 2),1)
-    samples 
-    predictedLabels = knnclass(data, data, fvector, data_c, k);
-    % the number of correct predictions
-    correct = sum(predictedLabels == data_c); 
-    result = correct/num_samples; % accuracy
-    
-    k = 1
-    cvmdlloss = kfoldLoss(cvmdl)
-end
-%}
+
 
 
 
