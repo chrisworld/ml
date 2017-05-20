@@ -2,3 +2,6 @@
 *.mat
 *.asv
 *.UbuntuTower
+*.tfrecord
+*.jpg
+*.csv
