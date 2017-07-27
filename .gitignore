@@ -6,3 +6,5 @@
 *.jpg
 *.csv
 *.tfrecord
+data
+*.h5
