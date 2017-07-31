@@ -10,6 +10,7 @@ n_in = 10
 n_out = 10
 #sample data
 n_sample = 300
+n_epoch = 100
 
 #hyperparameters
 learning_rate = 0.01
@@ -65,7 +66,7 @@ X = np.random.binomial(1, 0.5, (n_sample, n_in))
 T = X ^ 1
 
 # training time
-for epoch in range(100):
+for epoch in range(n_epoch):
     err = []
     upd = [0]*len(params)
     t0 = time.clock()
